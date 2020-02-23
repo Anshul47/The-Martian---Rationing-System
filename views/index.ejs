@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <% include header.ejs %>
+    <div class="container">
+      <br>
+      
+      <h3>Supplies Table</h3>
+      <hr>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Packet Id</th>
+            <th>Packet Type</th>
+            <th>Packet Content</th>
+            <th>Calories</th>
+            <th>Expiry Date</th>
+            <th>Qty In Litres</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for(var i = 0; i < supplies.data.length; i++){ %>
+            <tr>
+              <td><%= supplies.data[i].packet_id %></td>
+              <% if(supplies.data[i].packet_type == 1){ %>
+                <td>Food</td>
+              <% } else if (supplies.data[i].packet_type == 2) { %>
+                <td>Water</td>
+              <% } %>
+              
+              <td><%= supplies.data[i].packet_content %></td>
+              <td><%= supplies.data[i].calories %></td>
+              <td><%= supplies.data[i].expiry_date %></td>
+              <td><%= supplies.data[i].qty_in_litres %></td>
+              <td><a href="javascript:deleteSuppliesPacket('<%= supplies.data[i].sid %>')" class="btn btn-danger">Delete</a></td>
+            </tr>
+          <% } %>
+          
+        </tbody>
+      </table>
+
+      <h3>Schedule Table</h3>
+      <hr>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Schedule Date</th>
+            <th>Packet Id</th>
+            <th>Packet Type</th>
+            <th>Packet Content</th>
+            <th>Calories</th>
+            <th>Expiry Date</th>
+            <th>Qty In Litres</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for(var i = 0; i < output.length; i++){ %>
+            
+              <% var count1 = output[i].water.length  %>
+              <% var count2 = output[i].food.length  %>
+              <% var total = count1 + count2 %>
+              
+              <% for(var j = 0; j < count1; j++){ %>
+                <tr>
+                  <% if(j == 0) { %>
+                    <td rowspan="<%= total %>" class="text-center"><%= output[i].date %></td>
+                  <% } %>
+                  <td><%= output[i].water[j].packet_id %></td>
+                  <td>Water</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td><%= output[i].water[j].qty_in_litres %></td>
+                </tr>
+              <% } %>
+
+              <% for(var j = 0; j < count2; j++){ %>
+                <tr>
+                  
+                  <td><%= output[i].food[j].packet_id %></td>
+                  <td>Food</td>
+                  <td><%= output[i].food[j].packet_content %></td>
+                  <td><%= output[i].food[j].calories %></td>
+                  <td><%= output[i].food[j].expiry_date %></td>
+                  <td>-</td>
+                </tr>
+              <% } %>
+            
+          <% } %>
+          
+        </tbody>
+      </table>
+      <br>
+      <h2>Number of days you can survive with current inventory : <%= output.length %></h2>
+      <br>
+    </div>
+
+    <!-- Modal -->
+  <div class="modal fade" id="addfood" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Add Food</h4>
+        </div>
+        <div class="modal-body">
+          <form action="/food" method="post" id="food_form">
+            <div class="row">
+              <div class="col-sm-4">
+
+                <div class="form-group">
+                  <label for="packet_id">Packet Id</label>
+                  <input type="text" class="form-control" id="packet_id" placeholder="Packet Id" name="packet_id">
+                </div>
+
+              </div>
+              <div class="col-sm-4">
+                
+                <div class="form-group">
+                  <label for="packet_content">Packet Content</label>
+                  <input type="text" class="form-control" id="packet_content" placeholder="Packet Content" name="packet_content">
+                </div>
+
+              </div>
+              <div class="col-sm-4">
+                
+                <div class="form-group">
+                  <label for="expiry_date">Expiry Date</label>
+                  <input type="text" class="form-control" id="expiry_date" placeholder="Enter Date" name="expiry_date">
+                </div>
+
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-4">
+
+                <div class="form-group">
+                  <label for="calories">Calories</label>
+                  <input type="number" class="form-control" id="calories" placeholder="Calories" name="calories">
+                </div>
+
+              </div>
+              
+            </div>
+            
+          </form>  
+          
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" onClick="submitFoodPacket()">Add Food Packet</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="addwater" role="dialog">
+    <div class="modal-dialog">
+    
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Add Water</h4>
+        </div>
+        <div class="modal-body">
+          <form action="/water" method="post" id="water_form">
+            <div class="row">
+              <div class="col-sm-4">
+                <div class="form-group">
+                  <label for="packet_id">Packet Id</label>
+                  <input type="text" class="form-control" id="packet_id" placeholder="Packet Id" name="packet_id">
+                </div>
+              </div>
+              <div class="col-sm-4">
+                <div class="form-group">
+                  <label for="calories">Qty In Litres</label>
+                  <input type="number" class="form-control" id="qty_in_litres" placeholder="Qty In Litres" name="qty_in_litres">
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" onClick="submitWaterPacket()">Add Water Packet</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+    
+  </body>
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.1/js/bootstrap-datepicker.min.js"></script>
+  <script>
+
+    $( document ).ready(function() {
+      
+      $('#expiry_date').datepicker({
+        format: 'dd/mm/yyyy',
+        startDate: '-3d'
+      });
+      
+    });
+
+    function openAddFood() {
+        $('#addfood').modal('show');
+    }
+
+    function openAddWater() {
+        $('#addwater').modal('show');
+    }
+
+    function submitFoodPacket(){
+      $( "#food_form" ).submit();
+    }
+
+    function submitWaterPacket(){
+      $( "#water_form" ).submit();
+    }
+
+    function deleteSuppliesPacket(sid){
+      if(confirm("Are you sure you want to delete?")){
+        window.location.href = "/packet-delete/"+sid;
+      }
+    }
+  </script>
+</html>
